@@ -1,26 +1,39 @@
-const socketConn = new WebSocket('ws://localhost:8080/txtSocketHandler');
+sessionUserIdconst = socketConn = new WebSocket('ws://localhost:8080/txtSocketHandler');
 
-const updateUserList = function () {
+const updateUserList = function (userID) {
     $("#sessionUserId").empty();
-    $.getJSON("/ws/users", function(data){
+    $.getJSON("/ws/users", function (data) {
         $("#sessionUserId").append("<option value =\"-1\">send to all users</option>");
         for (var i = 0, len = data.length; i < len; i++) {
-            $("#sessionUserId").append('<option value = \"'+data[i]+'\">'+data[i]+"</option>");
+            $("#sessionUserId").append('<option value = \"' + data[i] + '\">' + data[i] + "</option>");
+            if($(".messagelist." + data[i]).length == 0) {
+                $("#main-content").append("<div class='row'>\n" +
+                    "        <div class='col-md-12'>\n" +
+                    "            <table class='table table-striped'>\n" +
+                    "                <thead>\n" +
+                    "                <tr>\n" +
+                    "                    <th>Dialog with " + data[i] + "</th>\n" +
+                    "                </tr>\n" +
+                    "                </thead>\n" +
+                    "                <tbody class='messagelist " + data[i] + "'>\n" +
+                    "                </tbody>\n" +
+                    "            </table>\n" +
+                    "        </div>\n" +
+                    "    </div>");
+            }
         }
     });
 };
 
-socketConn.onmessage = (e) =>
-{
+socketConn.onmessage = (e) => {
     console.log(e);
     if (JSON.parse(e.data).sessionId) {
         console.log("UPDATE LIST");
-        updateUserList();
+        updateUserList(JSON.parse(e.data).sessionId);
     }else {
-        showMessage(JSON.parse(e.data).msg);
+        showMessage(JSON.parse(e.data).sessionUserId, JSON.parse(e.data).msg);
     }
-
-}
+};
 
 socketConn.onopen = function () {
     alert("Connection established.");
@@ -50,9 +63,9 @@ function sendMessage() {
     updateUserList();
 }
 
-function showMessage(message) {
-
-    $("#messagelist").append("<tr><td>" + message + "</td></tr>");
+function showMessage(id, message) {
+    console.log(id);
+    $(".messagelist." + id).append("<tr><td>" + message + "</td></tr>");
 }
 
 $(function () {
